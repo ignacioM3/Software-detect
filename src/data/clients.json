@@ -1,0 +1,97 @@
+[
+  {
+    "_id": "1",
+    "name": "Cliente Uno1",
+    "email": "cliente1@example.com",
+    "number": "123456789",
+    "address": "Calle Falsa 123",
+    "minners": []
+  },
+  {
+    "_id": "5",
+    "name": "Cliente Sin Datos Opcionales",
+    "minners": []
+  },
+  {
+    "_id": "6",
+    "name": "Cliente Sin Datos Opcionales",
+    "minners": []
+  },
+  {
+    "_id": "7",
+    "name": "Cliente Sin Datos Opcionales",
+    "minners": []
+  },
+  {
+    "_id": "8",
+    "name": "Cliente Sin Datos Opcionales",
+    "minners": []
+  },
+  {
+    "_id": "9",
+    "name": "Cliente Sin Datos Opcionales",
+    "minners": []
+  },
+  {
+    "_id": "10",
+    "name": "Cliente Sin Datos Opcionales",
+    "minners": []
+  },
+  {
+    "_id": "11",
+    "name": "Cliente Sin Datos Opcionales",
+    "minners": []
+  },
+  {
+    "_id": "12",
+    "name": "Cliente Sin Datos Opcionales",
+    "minners": []
+  },
+  {
+    "_id": "13",
+    "name": "Cliente Sin Datos Opcionales",
+    "minners": []
+  },
+  {
+    "_id": "14",
+    "name": "Cliente Sin Datos Opcionales",
+    "minners": []
+  },
+  {
+    "_id": "15",
+    "name": "ultimo",
+    "minners": []
+  },
+  {
+    "name": "ariel2",
+    "email": "ariel@gmail.com",
+    "number": "",
+    "address": "",
+    "minners": [],
+    "_id": "d5bec02d-fdd5-4ebf-9845-803bb78488eb"
+  },
+  {
+    "name": "otro",
+    "email": "test@gmail.com",
+    "number": "",
+    "address": "",
+    "minners": [],
+    "_id": "cae83a92-645b-49f0-ac23-835f0cf96cc6"
+  },
+  {
+    "name": "ultimo",
+    "email": "",
+    "number": "",
+    "address": "",
+    "minners": [],
+    "_id": "494b1ca8-1eef-4e91-aeb0-74f74dadffa1"
+  },
+  {
+    "name": "otrooo",
+    "email": "",
+    "number": "",
+    "address": "",
+    "minners": [],
+    "_id": "38446096-a412-488d-938d-1d9464376caa"
+  }
+]
