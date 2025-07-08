@@ -17,6 +17,7 @@ import { EditMinerForm } from '../components/minner/EdittMinerForm';
 import useGlobal from '../hooks/useGlobal';
 import flashy from '@pablotheblink/flashyjs';
 import { AddMinerForm } from '../components/minner/AddMinerForm';
+import { AppRoutes } from '../routes/app-routes';
 
 export function MinersList() {
   
@@ -217,7 +218,10 @@ export function MinersList() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     
-                                                  <button className='bg-gray-500 text-white p-2 rounded-md cursor-pointer hover:bg-gray-600 transition-colors'>Seleccionar</button>
+                                                  <button 
+                                                  className='bg-gray-500 text-white p-2 rounded-md cursor-pointer hover:bg-gray-600 transition-colors'
+                                                  onClick={() => navigate(AppRoutes.overlayOpen.route())}
+                                                  >Seleccionar</button>
                                                 </td>
                                             </tr>
 

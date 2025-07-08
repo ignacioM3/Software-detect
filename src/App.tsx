@@ -8,6 +8,7 @@ import { ClientList } from './page/ClientList';
 import { AboutMe } from './page/AboutMe';
 import { GlobalProvider } from './context/GlobalProvider';
 import { MinersList } from './page/MinerList';
+import ScreenOverlay from './page/ScreenOverlay';
 
 function App() {
   
@@ -22,6 +23,7 @@ function App() {
             <Route path={AppRoutes.aboutMe.route()} element={<AboutMe />} />
             <Route path={AppRoutes.clientMiners.route()} element={<MinersList />} />
           </Route>
+          <Route path={AppRoutes.overlayOpen.route()} element={<ScreenOverlay/>}/>
         </Routes>
       </GlobalProvider>
     </Router>

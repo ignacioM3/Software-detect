@@ -32,5 +32,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getMiners: () => ipcRenderer.invoke('get-miners'),
   getMinersByIdClient: (clientId: string) => ipcRenderer.invoke('get-miners-by-id-client', clientId),
   updateMiner: (updateMiner: any) => ipcRenderer.invoke('update-miner', updateMiner),
-  deleteMiner: (minerId: string) => ipcRenderer.invoke('delete-miner', minerId)
+  deleteMiner: (minerId: string) => ipcRenderer.invoke('delete-miner', minerId),
+   exitApp: () => ipcRenderer.send('exit-app'),
+   
+})
+
+// Exponer función para manejar el modo overlay
+contextBridge.exposeInMainWorld('setOverlayMode', (enabled: boolean) => {
+  ipcRenderer.send('set-overlay-mode', enabled)
+})
+
+// Exponer función para manejar el mouse sobre los botones
+contextBridge.exposeInMainWorld('sendMouseOverButtons', (isOverButtons: boolean) => {
+  ipcRenderer.send('mouse-over-buttons', isOverButtons)
 })

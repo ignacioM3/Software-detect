@@ -16,6 +16,9 @@ export const AppRoutes = {
   },
   clientMiners: {
     route: () => "/clientMiners"
+  },
+  overlayOpen: {
+    route: () => "/overlay"
   }
 } as const satisfies Record<string, SimpleRouterDefinition>;
 

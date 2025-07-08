@@ -50,7 +50,6 @@ const options = [
 ];
 
 export function MenuList() {
-    const [activeSystem, setActiveSystem] = useState(true);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-4 sm:p-6">
@@ -68,14 +67,11 @@ export function MenuList() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${activeSystem ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                            <span>Sistema {activeSystem ? 'Activo' : 'Inactivo'}</span>
-                        </div>
+                        
 
                         <button
-                            onClick={() => setActiveSystem(!activeSystem)}
-                            className={`p-2 rounded-lg flex items-center gap-2 ${activeSystem ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} transition-colors`}
+                           onClick={() => window.electronAPI.exitApp()} 
+                            className={`p-2 rounded-lg flex items-center gap-2 bg-red-600 hover:bg-red-700  transition-colors cursor-pointer`}
                         >
                             <FaPowerOff />
                             <span className="hidden sm:inline">Salir</span>

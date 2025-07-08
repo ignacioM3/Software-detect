@@ -14,12 +14,21 @@ let win;
 function createWindow() {
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    width: 1920,
+    height: 1080,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    resizable: true,
+    maximizable: true,
+    fullscreenable: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs")
     }
   });
   win.setMenuBarVisibility(false);
-  win.webContents.openDevTools();
+  win.setIgnoreMouseEvents(false);
+  win.maximize();
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   });
@@ -41,6 +50,27 @@ app.on("activate", () => {
   }
 });
 app.whenReady().then(createWindow);
+ipcMain.on("exit-app", () => {
+  app.quit();
+});
+ipcMain.on("set-overlay-mode", (event, enabled) => {
+  if (win) {
+    if (enabled) {
+      win.setAlwaysOnTop(true, "screen-saver");
+      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+      win.setIgnoreMouseEvents(true, { forward: true });
+    } else {
+      win.setAlwaysOnTop(false);
+      win.setVisibleOnAllWorkspaces(false);
+      win.setIgnoreMouseEvents(false);
+    }
+  }
+});
+ipcMain.on("mouse-over-buttons", (event, isOverButtons) => {
+  if (win) {
+    win.setIgnoreMouseEvents(!isOverButtons, { forward: true });
+  }
+});
 const CLIENTS_API = path.join(__dirname, "../src/data/clients.json");
 const MINERS_API = path.join(__dirname, "../src/data/miners.json");
 ipcMain.handle("save-clients", async (event, client) => {

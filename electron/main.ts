@@ -30,13 +30,27 @@ let win: BrowserWindow | null
 function createWindow() {
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+    width: 1920,
+    height: 1080,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    resizable: true,
+    maximizable: true,
+    fullscreenable: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
+     
     },
   })
 
   win.setMenuBarVisibility(false)
-  win.webContents.openDevTools()
+  win.setIgnoreMouseEvents(false)
+  // win.webContents.openDevTools()
+  
+  // Maximizar la ventana para que cubra toda la pantalla
+  win.maximize()
+  
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {
     win?.webContents.send('main-process-message', (new Date).toLocaleString())
@@ -69,6 +83,35 @@ app.on('activate', () => {
 })
 
 app.whenReady().then(createWindow)
+
+
+ipcMain.on('exit-app', () => {
+  app.quit()
+})
+
+// Manejador para el modo overlay
+ipcMain.on('set-overlay-mode', (event, enabled: boolean) => {
+  if (win) {
+    if (enabled) {
+      win.setAlwaysOnTop(true, 'screen-saver')
+      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+
+      // 🔥 Esta línea permite que los clics "pasen" a otras apps
+      win.setIgnoreMouseEvents(true, { forward: true })
+    } else {
+      win.setAlwaysOnTop(false)
+      win.setVisibleOnAllWorkspaces(false)
+      win.setIgnoreMouseEvents(false)
+    }
+  }
+})
+
+// Manejador para cuando el mouse está sobre los botones
+ipcMain.on('mouse-over-buttons', (event, isOverButtons: boolean) => {
+  if (win) {
+    win.setIgnoreMouseEvents(!isOverButtons, { forward: true })
+  }
+})
 
 const CLIENTS_API = path.join(__dirname, '../src/data/clients.json');
 const MINERS_API = path.join(__dirname, '../src/data/miners.json')

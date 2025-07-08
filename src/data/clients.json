@@ -5,7 +5,11 @@
     "email": "cliente1@example.com",
     "number": "123456789",
     "address": "Calle Falsa 123",
-    "minners": []
+    "minners": [
+      {
+        "_id": "ece9f40f-0022-4901-a1f0-1e50e9d7251d"
+      }
+    ]
   },
   {
     "_id": "5",

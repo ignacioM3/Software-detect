@@ -27,5 +27,12 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   getMiners: () => electron.ipcRenderer.invoke("get-miners"),
   getMinersByIdClient: (clientId) => electron.ipcRenderer.invoke("get-miners-by-id-client", clientId),
   updateMiner: (updateMiner) => electron.ipcRenderer.invoke("update-miner", updateMiner),
-  deleteMiner: (minerId) => electron.ipcRenderer.invoke("delete-miner", minerId)
+  deleteMiner: (minerId) => electron.ipcRenderer.invoke("delete-miner", minerId),
+  exitApp: () => electron.ipcRenderer.send("exit-app")
+});
+electron.contextBridge.exposeInMainWorld("setOverlayMode", (enabled) => {
+  electron.ipcRenderer.send("set-overlay-mode", enabled);
+});
+electron.contextBridge.exposeInMainWorld("sendMouseOverButtons", (isOverButtons) => {
+  electron.ipcRenderer.send("mouse-over-buttons", isOverButtons);
 });

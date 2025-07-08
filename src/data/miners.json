@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "name": "Minero 1",
+    "idModel": "test",
+    "reports": [],
+    "_id": "ece9f40f-0022-4901-a1f0-1e50e9d7251d",
+    "clientId": "1"
+  }
+]

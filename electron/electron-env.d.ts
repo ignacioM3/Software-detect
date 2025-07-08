@@ -36,6 +36,8 @@ interface ElectronAPI {
   getMinersByIdClient: (clientId: string) => Promise<any[]>
   updateMiner: (updateMiner: any) => Promise<{ok: boolean; error?: string}>
   deleteMiner: (minerId: string) => Promise<{ok: boolean; error?: string}>
+  exitApp: () => void
+
 }
 
 interface Window {
