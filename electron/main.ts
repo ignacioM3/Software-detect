@@ -46,7 +46,6 @@ function createWindow() {
 
   win.setMenuBarVisibility(false)
   win.setIgnoreMouseEvents(false)
-  // win.webContents.openDevTools()
   
   // Maximizar la ventana para que cubra toda la pantalla
   win.maximize()
@@ -90,28 +89,42 @@ ipcMain.on('exit-app', () => {
 })
 
 // Manejador para el modo overlay
+// ... (código existente)
+
+// Manejador para el modo overlay
 ipcMain.on('set-overlay-mode', (event, enabled: boolean) => {
   if (win) {
     if (enabled) {
-      win.setAlwaysOnTop(true, 'screen-saver')
-      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
-
-      // 🔥 Esta línea permite que los clics "pasen" a otras apps
-      win.setIgnoreMouseEvents(true, { forward: true })
+      win.setAlwaysOnTop(true, 'screen-saver');
+      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+      win.setIgnoreMouseEvents(true, { forward: true });
     } else {
-      win.setAlwaysOnTop(false)
-      win.setVisibleOnAllWorkspaces(false)
-      win.setIgnoreMouseEvents(false)
+      win.setAlwaysOnTop(false);
+      win.setVisibleOnAllWorkspaces(false);
+      win.setIgnoreMouseEvents(false);
     }
   }
-})
+});
 
 // Manejador para cuando el mouse está sobre los botones
 ipcMain.on('mouse-over-buttons', (event, isOverButtons: boolean) => {
   if (win) {
-    win.setIgnoreMouseEvents(!isOverButtons, { forward: true })
+    win.setIgnoreMouseEvents(!isOverButtons, { forward: true });
   }
-})
+});
+
+// Nuevo manejador para el modo de selección
+ipcMain.on('set-selection-mode', (event, selecting: boolean) => {
+  if (win) {
+    if (selecting) {
+      // Desactivar la ignorancia de eventos durante la selección
+      win.setIgnoreMouseEvents(false);
+    } else {
+      // Volver al modo overlay normal
+      win.setIgnoreMouseEvents(true, { forward: true });
+    }
+  }
+});
 
 const CLIENTS_API = path.join(__dirname, '../src/data/clients.json');
 const MINERS_API = path.join(__dirname, '../src/data/miners.json')

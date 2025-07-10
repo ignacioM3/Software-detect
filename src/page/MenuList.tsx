@@ -36,7 +36,7 @@ const options = [
     {
         title: 'Importar Archivos',
         description: 'Agregar archivos de información de chips',
-        path: '/minners',
+        path: '/test',
         icon: <GoFileSymlinkFile className="text-green-500" />,
         color: "from-green-500 to-green-600"
     },

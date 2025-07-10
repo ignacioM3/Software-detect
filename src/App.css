@@ -73,3 +73,79 @@
     transform: scale(1.0); 
   } 
 }
+
+/* Estilos para el componente Rnd de selección */
+.selection-box {
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+}
+
+.selection-box:hover {
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
+}
+
+/* Estilos para los handles de resize */
+.selection-box .react-resizable-handle {
+  background-color: #3b82f6;
+  border: 1px solid #ffffff;
+  border-radius: 2px;
+  width: 8px;
+  height: 8px;
+}
+
+.selection-box .react-resizable-handle:hover {
+  background-color: #2563eb;
+  transform: scale(1.2);
+}
+
+/* Estilos específicos para cada handle */
+.selection-box .react-resizable-handle-se {
+  bottom: -4px;
+  right: -4px;
+  cursor: se-resize;
+}
+
+.selection-box .react-resizable-handle-sw {
+  bottom: -4px;
+  left: -4px;
+  cursor: sw-resize;
+}
+
+.selection-box .react-resizable-handle-ne {
+  top: -4px;
+  right: -4px;
+  cursor: ne-resize;
+}
+
+.selection-box .react-resizable-handle-nw {
+  top: -4px;
+  left: -4px;
+  cursor: nw-resize;
+}
+
+.selection-box .react-resizable-handle-n {
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: n-resize;
+}
+
+.selection-box .react-resizable-handle-s {
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: s-resize;
+}
+
+.selection-box .react-resizable-handle-e {
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: e-resize;
+}
+
+.selection-box .react-resizable-handle-w {
+  left: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: w-resize;
+}

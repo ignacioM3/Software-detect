@@ -71,6 +71,15 @@ ipcMain.on("mouse-over-buttons", (event, isOverButtons) => {
     win.setIgnoreMouseEvents(!isOverButtons, { forward: true });
   }
 });
+ipcMain.on("set-selection-mode", (event, selecting) => {
+  if (win) {
+    if (selecting) {
+      win.setIgnoreMouseEvents(false);
+    } else {
+      win.setIgnoreMouseEvents(true, { forward: true });
+    }
+  }
+});
 const CLIENTS_API = path.join(__dirname, "../src/data/clients.json");
 const MINERS_API = path.join(__dirname, "../src/data/miners.json");
 ipcMain.handle("save-clients", async (event, client) => {
