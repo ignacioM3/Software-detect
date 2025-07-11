@@ -3,6 +3,7 @@ import { GoAlert } from "react-icons/go";
 import { LuSquareDashedMousePointer } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { Rnd } from "react-rnd";
+import flashy from "@pablotheblink/flashyjs";
 
 // Declaración para TypeScript
 declare global {
@@ -22,6 +23,43 @@ export default function ScreenOverlay() {
     width: 300, 
     height: 200 
   });
+
+const handleStart = async () => {
+  try {
+    // Obtener todas las fuentes de captura
+    const sources = await window.electronAPI.getCaptureSources();
+    
+    if (sources.length === 0) {
+      console.error('No se encontraron fuentes de captura');
+      return;
+    }
+    
+    // Seleccionar la primera pantalla disponible
+    const sourceId = sources[0].id;
+    
+    // Capturar solo el área seleccionada si está activo el modo de selección
+    const area = isSelecting ? {
+      x: Math.round(selectionRect.x),
+      y: Math.round(selectionRect.y),
+      width: Math.round(selectionRect.width),
+      height: Math.round(selectionRect.height)
+    } : undefined;
+    
+    const result = await window.electronAPI.captureScreen(sourceId, area);
+    
+    if (result.ok) {
+      console.log(`Captura exitosa: ${result.filepath}`);
+      // Aquí puedes mostrar una notificación o feedback visual
+      flashy.success("Captura exitosa", { position: "top-right" });
+    } else {
+      console.error('Error en captura:', result.error);
+      flashy.error("Error al capturar", { position: "top-right" });
+    }
+  } catch (error) {
+    console.error('Error al capturar pantalla:', error);
+    flashy.error("Error inesperado", { position: "top-right" });
+  }
+};
   
   const navigate = useNavigate();
 
@@ -112,9 +150,12 @@ export default function ScreenOverlay() {
           onMouseLeave={handleMouseLeave}
         >
           
-          <button className="px-4 w-[150px] py-2 bg-green-600/80 hover:bg-green-700/90 text-white rounded-lg shadow-lg transition-all flex items-center gap-2 justify-center cursor-pointer backdrop-blur-sm">
-            <GoAlert /> Iniciar
-          </button>
+         <button 
+  onClick={handleStart}
+  className="px-4 w-[150px] py-2 bg-green-600/80 hover:bg-green-700/90 text-white rounded-lg shadow-lg transition-all flex items-center gap-2 justify-center cursor-pointer backdrop-blur-sm"
+>
+  <GoAlert /> Iniciar
+</button>
           <button className="px-4 py-2 bg-orange-600/80 hover:bg-orange-700/90 text-white rounded-lg shadow-lg transition-all cursor-pointer backdrop-blur-sm">
             🌡️ Detener
           </button>

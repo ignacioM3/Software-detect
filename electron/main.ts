@@ -1,8 +1,9 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, desktopCapturer, ipcMain } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
 import path from 'node:path'
+import { screen } from 'electron';
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -301,3 +302,76 @@ ipcMain.handle('delete-miner', async (event, minerId) => {
     return {ok: false, error: error.message}
   }
 })
+
+ipcMain.handle('get-capture-sources', async () => {
+  try {
+    const sources = await desktopCapturer.getSources({
+      types: ['screen']
+    });
+    return sources.map(source => ({
+      id: source.id,
+      name: source.name,
+      thumbnail: source.thumbnail.toDataURL() // Convertir a base64
+    }));
+  } catch (error) {
+    console.error('Error al obtener fuentes:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('capture-screen', async (event, sourceId: string, area?: any) => {
+  try {
+    // Minimizar la ventana antes de capturar
+    
+    // Pequeña pausa para que la ventana se minimice completamente
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Obtener la resolución de la pantalla principal
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.size;
+
+    const sources = await desktopCapturer.getSources({
+      types: ['screen'],
+      thumbnailSize: { width, height } // Usar la resolución real de la pantalla
+    });
+
+    const source = sources.find(s => s.id === sourceId);
+    if (!source) throw new Error('Fuente no encontrada');
+
+    // Crear directorio para capturas si no existe
+    const capturesDir = path.join(__dirname, '../src/data/captures');
+    if (!fs.existsSync(capturesDir)) {
+      fs.mkdirSync(capturesDir, { recursive: true });
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filepath = path.join(capturesDir, `capture-${timestamp}.png`);
+
+    let imageBuffer: Buffer;
+    if (area) {
+      // Recortar la imagen al área especificada
+      const img = source.thumbnail.crop({
+        x: area.x,
+        y: area.y,
+        width: area.width,
+        height: area.height
+      });
+      imageBuffer = img.toPNG();
+    } else {
+      imageBuffer = source.thumbnail.toPNG();
+    }
+
+    fs.writeFileSync(filepath, imageBuffer);
+
+    return { 
+      ok: true,
+      filepath,
+      filename: `capture-${timestamp}.png`,
+      area
+    };
+  } catch (error: any) {
+    // Restaurar la ventana en caso de error
+    if (win) win.restore();
+    return { ok: false, error: error.message };
+  }
+});

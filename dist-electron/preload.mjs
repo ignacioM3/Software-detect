@@ -29,7 +29,9 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   updateMiner: (updateMiner) => electron.ipcRenderer.invoke("update-miner", updateMiner),
   deleteMiner: (minerId) => electron.ipcRenderer.invoke("delete-miner", minerId),
   exitApp: () => electron.ipcRenderer.send("exit-app"),
-  setSelectionMode: (enabled) => electron.ipcRenderer.send("set-selection-mode", enabled)
+  setSelectionMode: (enabled) => electron.ipcRenderer.send("set-selection-mode", enabled),
+  getCaptureSources: () => electron.ipcRenderer.invoke("get-capture-sources"),
+  captureScreen: (sourceId, area) => electron.ipcRenderer.invoke("capture-screen", sourceId, area)
 });
 electron.contextBridge.exposeInMainWorld("setOverlayMode", (enabled) => {
   electron.ipcRenderer.send("set-overlay-mode", enabled);

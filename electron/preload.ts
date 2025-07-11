@@ -34,8 +34,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateMiner: (updateMiner: any) => ipcRenderer.invoke('update-miner', updateMiner),
   deleteMiner: (minerId: string) => ipcRenderer.invoke('delete-miner', minerId),
    exitApp: () => ipcRenderer.send('exit-app'),
-   setSelectionMode: (enabled: any) => ipcRenderer.send('set-selection-mode', enabled)
-   
+   setSelectionMode: (enabled: any) => ipcRenderer.send('set-selection-mode', enabled),
+    getCaptureSources: () => ipcRenderer.invoke('get-capture-sources'),
+  captureScreen: (sourceId: string, area?: any) => 
+    ipcRenderer.invoke('capture-screen', sourceId, area),
 })
 
 // Exponer función para manejar el modo overlay

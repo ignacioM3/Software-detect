@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, desktopCapturer, screen } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import fs from "node:fs";
@@ -233,6 +233,64 @@ ipcMain.handle("delete-miner", async (event, minerId) => {
     }
     return { ok: false, error: "File not found" };
   } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
+ipcMain.handle("get-capture-sources", async () => {
+  try {
+    const sources = await desktopCapturer.getSources({
+      types: ["screen"]
+    });
+    return sources.map((source) => ({
+      id: source.id,
+      name: source.name,
+      thumbnail: source.thumbnail.toDataURL()
+      // Convertir a base64
+    }));
+  } catch (error) {
+    console.error("Error al obtener fuentes:", error);
+    return [];
+  }
+});
+ipcMain.handle("capture-screen", async (event, sourceId, area) => {
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.size;
+    const sources = await desktopCapturer.getSources({
+      types: ["screen"],
+      thumbnailSize: { width, height }
+      // Usar la resolución real de la pantalla
+    });
+    const source = sources.find((s) => s.id === sourceId);
+    if (!source) throw new Error("Fuente no encontrada");
+    const capturesDir = path.join(__dirname, "../src/data/captures");
+    if (!fs.existsSync(capturesDir)) {
+      fs.mkdirSync(capturesDir, { recursive: true });
+    }
+    const timestamp = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
+    const filepath = path.join(capturesDir, `capture-${timestamp}.png`);
+    let imageBuffer;
+    if (area) {
+      const img = source.thumbnail.crop({
+        x: area.x,
+        y: area.y,
+        width: area.width,
+        height: area.height
+      });
+      imageBuffer = img.toPNG();
+    } else {
+      imageBuffer = source.thumbnail.toPNG();
+    }
+    fs.writeFileSync(filepath, imageBuffer);
+    return {
+      ok: true,
+      filepath,
+      filename: `capture-${timestamp}.png`,
+      area
+    };
+  } catch (error) {
+    if (win) win.restore();
     return { ok: false, error: error.message };
   }
 });

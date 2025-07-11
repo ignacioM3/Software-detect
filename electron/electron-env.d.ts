@@ -37,7 +37,8 @@ interface ElectronAPI {
   updateMiner: (updateMiner: any) => Promise<{ok: boolean; error?: string}>
   deleteMiner: (minerId: string) => Promise<{ok: boolean; error?: string}>
   exitApp: () => void
-
+   getCaptureSources: () => Promise<CaptureSource[]>;
+  captureScreen: (sourceId: string, area?: any) => Promise<CaptureResult>;
 }
 
 interface Window {
