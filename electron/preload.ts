@@ -36,8 +36,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
    exitApp: () => ipcRenderer.send('exit-app'),
    setSelectionMode: (enabled: any) => ipcRenderer.send('set-selection-mode', enabled),
     getCaptureSources: () => ipcRenderer.invoke('get-capture-sources'),
-  captureScreen: (sourceId: string, area?: any) => 
-    ipcRenderer.invoke('capture-screen', sourceId, area),
+  captureScreen: (sourceId: string, area?: any) => ipcRenderer.invoke('capture-screen', sourceId, area),
+  readImageBase64: (filePath: string) => ipcRenderer.invoke('read-image-base64', filePath)
 })
 
 // Exponer función para manejar el modo overlay

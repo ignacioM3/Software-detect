@@ -39,6 +39,8 @@ interface ElectronAPI {
   exitApp: () => void
    getCaptureSources: () => Promise<CaptureSource[]>;
   captureScreen: (sourceId: string, area?: any) => Promise<CaptureResult>;
+   readImageBase64: (filePath: string) => string;
+
 }
 
 interface Window {

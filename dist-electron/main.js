@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, desktopCapturer, screen } from "electron";
+import { app, BrowserWindow, ipcMain, desktopCapturer, screen, globalShortcut } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import fs from "node:fs";
@@ -28,6 +28,14 @@ function createWindow() {
   });
   win.setMenuBarVisibility(false);
   win.setIgnoreMouseEvents(false);
+  win.webContents.openDevTools();
+  globalShortcut.register("CommandOrControl+Shift+I", () => {
+    if (win.webContents.isDevToolsOpened()) {
+      win.webContents.closeDevTools();
+    } else {
+      win.webContents.openDevTools();
+    }
+  });
   win.maximize();
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
@@ -254,7 +262,7 @@ ipcMain.handle("get-capture-sources", async () => {
 });
 ipcMain.handle("capture-screen", async (event, sourceId, area) => {
   try {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.size;
     const sources = await desktopCapturer.getSources({
@@ -272,25 +280,66 @@ ipcMain.handle("capture-screen", async (event, sourceId, area) => {
     const filepath = path.join(capturesDir, `capture-${timestamp}.png`);
     let imageBuffer;
     if (area) {
+      if (area.x < 0 || area.y < 0 || area.width <= 0 || area.height <= 0) {
+        throw new Error("Área de selección inválida");
+      }
       const img = source.thumbnail.crop({
-        x: area.x,
-        y: area.y,
-        width: area.width,
-        height: area.height
+        x: Math.max(0, area.x),
+        y: Math.max(0, area.y),
+        width: Math.min(area.width, source.thumbnail.getSize().width - area.x),
+        height: Math.min(area.height, source.thumbnail.getSize().height - area.y)
       });
       imageBuffer = img.toPNG();
     } else {
       imageBuffer = source.thumbnail.toPNG();
     }
+    if (!imageBuffer || imageBuffer.length === 0) {
+      throw new Error("No se pudo generar la imagen");
+    }
     fs.writeFileSync(filepath, imageBuffer);
+    if (!fs.existsSync(filepath)) {
+      throw new Error("No se pudo guardar la imagen");
+    }
+    const stats = fs.statSync(filepath);
+    if (stats.size === 0) {
+      throw new Error("El archivo de imagen está vacío");
+    }
+    console.log(`Imagen guardada: ${filepath}, tamaño: ${stats.size} bytes`);
     return {
       ok: true,
       filepath,
       filename: `capture-${timestamp}.png`,
-      area
+      area,
+      fileSize: stats.size
     };
   } catch (error) {
+    console.error("Error en captura de pantalla:", error);
     if (win) win.restore();
+    return { ok: false, error: error.message };
+  }
+});
+ipcMain.handle("read-image-base64", async (event, filePath) => {
+  try {
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Archivo no encontrado: ${filePath}`);
+    }
+    const stats = fs.statSync(filePath);
+    if (stats.size === 0) {
+      throw new Error("El archivo de imagen está vacío");
+    }
+    const buffer = fs.readFileSync(filePath);
+    if (!buffer || buffer.length === 0) {
+      throw new Error("No se pudo leer el archivo de imagen");
+    }
+    if (buffer.length < 8 || buffer[0] !== 137 || buffer[1] !== 80 || buffer[2] !== 78 || buffer[3] !== 71) {
+      throw new Error("El archivo no parece ser una imagen PNG válida");
+    }
+    const base64String = buffer.toString("base64");
+    const dataURL = `data:image/png;base64,${base64String}`;
+    console.log(`Imagen leída correctamente: ${filePath}, tamaño: ${buffer.length} bytes`);
+    return dataURL;
+  } catch (error) {
+    console.error("Error al leer imagen como base64:", error);
     return { ok: false, error: error.message };
   }
 });

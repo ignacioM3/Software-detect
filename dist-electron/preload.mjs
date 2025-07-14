@@ -31,7 +31,8 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   exitApp: () => electron.ipcRenderer.send("exit-app"),
   setSelectionMode: (enabled) => electron.ipcRenderer.send("set-selection-mode", enabled),
   getCaptureSources: () => electron.ipcRenderer.invoke("get-capture-sources"),
-  captureScreen: (sourceId, area) => electron.ipcRenderer.invoke("capture-screen", sourceId, area)
+  captureScreen: (sourceId, area) => electron.ipcRenderer.invoke("capture-screen", sourceId, area),
+  readImageBase64: (filePath) => electron.ipcRenderer.invoke("read-image-base64", filePath)
 });
 electron.contextBridge.exposeInMainWorld("setOverlayMode", (enabled) => {
   electron.ipcRenderer.send("set-overlay-mode", enabled);

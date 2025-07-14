@@ -4,6 +4,7 @@ import { LuSquareDashedMousePointer } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { Rnd } from "react-rnd";
 import flashy from "@pablotheblink/flashyjs";
+import { extractNumbersFromImage } from "../utils/ocr";
 
 // Declaración para TypeScript
 declare global {
@@ -49,7 +50,8 @@ const handleStart = async () => {
     
     if (result.ok) {
       console.log(`Captura exitosa: ${result.filepath}`);
-      // Aquí puedes mostrar una notificación o feedback visual
+      const numbers = await extractNumbersFromImage(result.filepath)
+      console.log(numbers)
       flashy.success("Captura exitosa", { position: "top-right" });
     } else {
       console.error('Error en captura:', result.error);
