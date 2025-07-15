@@ -126,7 +126,6 @@ const handleStart = async () => {
             bounds="window"
             style={{
               border: "2px solid #3b82f6",
-              backgroundColor: "rgba(59, 130, 246, 0.1)",
               borderRadius: "4px",
             }}
             enableResizing={{
