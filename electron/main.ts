@@ -49,10 +49,10 @@ function createWindow() {
   win.setIgnoreMouseEvents(false)
   win.webContents.openDevTools()
   globalShortcut.register('CommandOrControl+Shift+I', () => {
-    if (win.webContents.isDevToolsOpened()) {
-      win.webContents.closeDevTools();
+    if (win?.webContents.isDevToolsOpened()) {
+      win?.webContents.closeDevTools();
     } else {
-      win.webContents.openDevTools();
+      win?.webContents.openDevTools();
     }
   });
   
@@ -135,8 +135,21 @@ ipcMain.on('set-selection-mode', (event, selecting: boolean) => {
   }
 });
 
-const CLIENTS_API = path.join(__dirname, '../src/data/clients.json');
-const MINERS_API = path.join(__dirname, '../src/data/miners.json')
+const userDataPath = app.getPath('userData')
+const dataFolder = path.join(userDataPath, 'data')
+const capturesDir = path.join(dataFolder, 'captures')
+if (!fs.existsSync(dataFolder)) {
+  fs.mkdirSync(dataFolder, { recursive: true })
+}
+
+if (!fs.existsSync(capturesDir)) {
+  fs.mkdirSync(capturesDir, { recursive: true })
+}
+
+
+
+const CLIENTS_API = path.join(dataFolder, 'clients.json')
+const MINERS_API = path.join(dataFolder, 'miners.json')
 
 ipcMain.handle('save-clients', async (event, client) => {
   try {
@@ -329,39 +342,28 @@ ipcMain.handle('get-capture-sources', async () => {
 
 ipcMain.handle('capture-screen', async (event, sourceId: string, area?: any) => {
   try {
-    
-    // Pequeña pausa para que la ventana se minimice completamente
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Obtener la resolución de la pantalla principal
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.size;
 
     const sources = await desktopCapturer.getSources({
       types: ['screen'],
-      thumbnailSize: { width, height } // Usar la resolución real de la pantalla
+      thumbnailSize: { width, height }
     });
 
     const source = sources.find(s => s.id === sourceId);
     if (!source) throw new Error('Fuente no encontrada');
-
-    // Crear directorio para capturas si no existe
-    const capturesDir = path.join(__dirname, '../src/data/captures');
-    if (!fs.existsSync(capturesDir)) {
-      fs.mkdirSync(capturesDir, { recursive: true });
-    }
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filepath = path.join(capturesDir, `capture-${timestamp}.png`);
 
     let imageBuffer: Buffer;
     if (area) {
-      // Validar que el área esté dentro de los límites
       if (area.x < 0 || area.y < 0 || area.width <= 0 || area.height <= 0) {
         throw new Error('Área de selección inválida');
       }
-      
-      // Recortar la imagen al área especificada
+
       const img = source.thumbnail.crop({
         x: Math.max(0, area.x),
         y: Math.max(0, area.y),
@@ -373,17 +375,11 @@ ipcMain.handle('capture-screen', async (event, sourceId: string, area?: any) => 
       imageBuffer = source.thumbnail.toPNG();
     }
 
-    // Verificar que el buffer no esté vacío
     if (!imageBuffer || imageBuffer.length === 0) {
       throw new Error('No se pudo generar la imagen');
     }
 
     fs.writeFileSync(filepath, imageBuffer);
-
-    // Verificar que el archivo se guardó correctamente
-    if (!fs.existsSync(filepath)) {
-      throw new Error('No se pudo guardar la imagen');
-    }
 
     const stats = fs.statSync(filepath);
     if (stats.size === 0) {
@@ -392,7 +388,7 @@ ipcMain.handle('capture-screen', async (event, sourceId: string, area?: any) => 
 
     console.log(`Imagen guardada: ${filepath}, tamaño: ${stats.size} bytes`);
 
-    return { 
+    return {
       ok: true,
       filepath,
       filename: `capture-${timestamp}.png`,
@@ -401,7 +397,6 @@ ipcMain.handle('capture-screen', async (event, sourceId: string, area?: any) => 
     };
   } catch (error: any) {
     console.error('Error en captura de pantalla:', error);
-    // Restaurar la ventana en caso de error
     if (win) win.restore();
     return { ok: false, error: error.message };
   }

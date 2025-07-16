@@ -30,10 +30,10 @@ function createWindow() {
   win.setIgnoreMouseEvents(false);
   win.webContents.openDevTools();
   globalShortcut.register("CommandOrControl+Shift+I", () => {
-    if (win.webContents.isDevToolsOpened()) {
-      win.webContents.closeDevTools();
+    if (win == null ? void 0 : win.webContents.isDevToolsOpened()) {
+      win == null ? void 0 : win.webContents.closeDevTools();
     } else {
-      win.webContents.openDevTools();
+      win == null ? void 0 : win.webContents.openDevTools();
     }
   });
   win.maximize();
@@ -88,8 +88,17 @@ ipcMain.on("set-selection-mode", (event, selecting) => {
     }
   }
 });
-const CLIENTS_API = path.join(__dirname, "../src/data/clients.json");
-const MINERS_API = path.join(__dirname, "../src/data/miners.json");
+const userDataPath = app.getPath("userData");
+const dataFolder = path.join(userDataPath, "data");
+const capturesDir = path.join(dataFolder, "captures");
+if (!fs.existsSync(dataFolder)) {
+  fs.mkdirSync(dataFolder, { recursive: true });
+}
+if (!fs.existsSync(capturesDir)) {
+  fs.mkdirSync(capturesDir, { recursive: true });
+}
+const CLIENTS_API = path.join(dataFolder, "clients.json");
+const MINERS_API = path.join(dataFolder, "miners.json");
 ipcMain.handle("save-clients", async (event, client) => {
   try {
     let clients = [];
@@ -268,14 +277,9 @@ ipcMain.handle("capture-screen", async (event, sourceId, area) => {
     const sources = await desktopCapturer.getSources({
       types: ["screen"],
       thumbnailSize: { width, height }
-      // Usar la resolución real de la pantalla
     });
     const source = sources.find((s) => s.id === sourceId);
     if (!source) throw new Error("Fuente no encontrada");
-    const capturesDir = path.join(__dirname, "../src/data/captures");
-    if (!fs.existsSync(capturesDir)) {
-      fs.mkdirSync(capturesDir, { recursive: true });
-    }
     const timestamp = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
     const filepath = path.join(capturesDir, `capture-${timestamp}.png`);
     let imageBuffer;
@@ -297,9 +301,6 @@ ipcMain.handle("capture-screen", async (event, sourceId, area) => {
       throw new Error("No se pudo generar la imagen");
     }
     fs.writeFileSync(filepath, imageBuffer);
-    if (!fs.existsSync(filepath)) {
-      throw new Error("No se pudo guardar la imagen");
-    }
     const stats = fs.statSync(filepath);
     if (stats.size === 0) {
       throw new Error("El archivo de imagen está vacío");
