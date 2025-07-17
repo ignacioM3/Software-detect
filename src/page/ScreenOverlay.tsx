@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Rnd } from "react-rnd";
 import flashy from "@pablotheblink/flashyjs";
 import { extractNumbersFromImage } from "../utils/ocr";
+import { determineChips } from "../utils/test-chips";
 
 // Declaración para TypeScript
 declare global {
@@ -18,7 +19,7 @@ declare global {
 export default function ScreenOverlay() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
-  const [scan, setScan] = useState(false)
+  const [scan, setScan] = useState(false);
   const [selectionRect, setSelectionRect] = useState({
     x: 100,
     y: 100,
@@ -28,17 +29,6 @@ export default function ScreenOverlay() {
 
   const handleStart = async () => {
     try {
-      // Obtener todas las fuentes de captura
-      const sources = await window.electronAPI.getCaptureSources();
-
-      if (sources.length === 0) {
-        console.error("No se encontraron fuentes de captura");
-        return;
-      }
-
-      const sourceId = sources[0].id;
-
-      // Capturar solo el área seleccionada si está activo el modo de selección
       const area = isSelecting
         ? {
             x: Math.round(selectionRect.x),
@@ -48,20 +38,30 @@ export default function ScreenOverlay() {
           }
         : undefined;
 
+      const sources = await window.electronAPI.getCaptureSources();
+      if (sources.length === 0) {
+        flashy.error("No se encontraron fuentes de captura");
+        return;
+      }
+
+      const sourceId = sources[0].id;
+
       const result = await window.electronAPI.captureScreen(sourceId, area);
 
       if (result.ok) {
+        const currentValues = await extractNumbersFromImage(result.filepath);
         console.log(`Captura exitosa: ${result.filepath}`);
-        const numbers = await extractNumbersFromImage(result.filepath);
-        console.log(numbers);
-        flashy.success("Captura exitosa", { position: "top-right" });
+        console.log(currentValues);
+        flashy.success("Analizando chips");
+        const currentState = determineChips(currentValues);
+        console.log(currentState)
       } else {
         console.error("Error en captura:", result.error);
-        flashy.error("Error al capturar", { position: "top-right" });
+        flashy.error("Error al capturar", { position: "top-left" });
       }
     } catch (error) {
       console.error("Error al capturar pantalla:", error);
-      flashy.error("Error inesperado", { position: "top-right" });
+      flashy.error("Error inesperado", { position: "top-left" });
     }
   };
 
@@ -92,17 +92,23 @@ export default function ScreenOverlay() {
   };
 
   const handleScan = () => {
-    setScan(true)
-  }
+    setScan(true);
+  };
 
   useEffect(() => {
-    if(!scan) return
+    if (!scan) return;
+    if (!isSelecting) {
+      flashy.warning("Primero debe seleccionar un area a escanear", {
+        position: "top-left",
+      });
+      setScan(false);
+    }
 
     const interval = setInterval(() => {
-      handleStart()
-    }, 10000)
+      handleStart();
+    }, 10000);
 
-    return () => clearInterval(interval)
+    return () => clearInterval(interval);
   }, [scan]);
 
   useEffect(() => {
@@ -171,10 +177,10 @@ export default function ScreenOverlay() {
           >
             <GoAlert /> {scan ? "Escaneando" : "Iniciar"}
           </button>
-          <button 
+          <button
             className="px-4 py-2 bg-orange-600/80 hover:bg-orange-700/90 text-white rounded-lg shadow-lg transition-all cursor-pointer backdrop-blur-sm"
             onClick={() => setScan(false)}
-            >
+          >
             🌡️ Detener
           </button>
           <button
@@ -198,8 +204,7 @@ export default function ScreenOverlay() {
           </button>
           <button
             onClick={() => {
-              setScan(false),
-              navigate(-1)
+              setScan(false), navigate(-1);
             }}
             className="px-4 py-2 bg-gray-800/80 hover:bg-gray-900/90 text-white rounded-lg shadow-lg transition-all cursor-pointer backdrop-blur-sm"
           >
