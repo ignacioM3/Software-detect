@@ -6,8 +6,11 @@ import { Rnd } from "react-rnd";
 import flashy from "@pablotheblink/flashyjs";
 import { extractNumbersFromImage } from "../utils/ocr";
 import { determineChips } from "../utils/test-chips";
+import { IoIosWarning } from "react-icons/io";
+import { MdOutlineHealthAndSafety } from "react-icons/md";
+import { PiWarningOctagonFill } from "react-icons/pi";
+import { GiCycle } from "react-icons/gi";
 
-// Declaración para TypeScript
 declare global {
   interface Window {
     setOverlayMode?: (enabled: boolean) => void;
@@ -19,6 +22,12 @@ declare global {
 export default function ScreenOverlay() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [cycles, setCycles] = useState(0);
+  const [goodChips, setGoodChps] = useState(0)
+  const [warningChips, setWarningChips] = useState(0);
+  const [damageChips, setDamageChips] = useState(0)
+  const [reports, setReports] = useState(0)
+
   const [scan, setScan] = useState(false);
   const [selectionRect, setSelectionRect] = useState({
     x: 100,
@@ -54,7 +63,8 @@ export default function ScreenOverlay() {
         console.log(currentValues);
         flashy.success("Analizando chips");
         const currentState = determineChips(currentValues);
-        console.log(currentState)
+        console.log(currentState);
+        if (currentState) return flashy.success(currentState);
       } else {
         console.error("Error en captura:", result.error);
         flashy.error("Error al capturar", { position: "top-left" });
@@ -226,6 +236,31 @@ export default function ScreenOverlay() {
           </button>
         </div>
       )}
+
+      <div 
+        className="absolute top-5 left-5 flex gap-2 pointer-events-auto"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+        <div className="px-4 py-2 w-[80px] bg-green-600/80 hover:bg-green-700/90 text-white rounded-lg shadow-lg transition-all flex items-center gap-2 justify-center cursor-pointer backdrop-blur-sm">
+          <MdOutlineHealthAndSafety /> {goodChips}
+        </div>
+        <div className="px-4 justify-center gap-2 w-[80px] flex items-center py-2 bg-yellow-300/80 hover:bg-yellow-400/90 text-white rounded-lg shadow-lg transition-all cursor-pointer backdrop-blur-sm">
+          <IoIosWarning /> {warningChips}
+        </div>
+        <div className="px-4 justify-center gap-2 w-[80px] flex items-center py-2 bg-orange-500/70 hover:bg-orange-600/90 text-white rounded-lg shadow-lg transition-all cursor-pointer backdrop-blur-sm">
+          <IoIosWarning /> {damageChips}
+        </div>
+        <div className="px-4 justify-center gap-2 w-[80px] flex items-center py-2 bg-purple-500/90 hover:bg-purple-600/90 text-white rounded-lg shadow-lg transition-all cursor-pointer backdrop-blur-sm">
+          <PiWarningOctagonFill /> {reports}
+        </div>
+         <div 
+          className="px-4 justify-center gap-2 w-[80px] flex items-center py-2 bg-purple-500/90 hover:bg-purple-600/90 text-white rounded-lg shadow-lg transition-all cursor-pointer backdrop-blur-sm"
+          onClick={() => setCycles(cycles + 1)}
+          >
+          <GiCycle /> {cycles}
+        </div>
+      </div>
     </div>
   );
 }
