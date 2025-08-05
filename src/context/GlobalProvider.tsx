@@ -56,7 +56,11 @@ const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
             try {
                 setLoadingMiner(true)
                 if (!currentClient?._id) {
-                    navigate(AppRoutes.menuList.route())
+                    // Solo redirigir si no estamos en la página de inicio
+                    const currentPath = window.location.pathname;
+                    if (currentPath !== AppRoutes.home.route()) {
+                        navigate(AppRoutes.menuList.route())
+                    }
                     return
                 }
                 const data = await window.electronAPI.getMinersByIdClient(currentClient._id);

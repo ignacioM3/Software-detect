@@ -5,17 +5,24 @@ import { useNavigate } from "react-router-dom";
 import { Rnd } from "react-rnd";
 import flashy from "@pablotheblink/flashyjs";
 import { extractNumbersFromImage } from "../utils/ocr";
-import { determineChips } from "../utils/test-chips";
+import { determineStatus } from "../utils/test-chips";
 import { IoIosWarning } from "react-icons/io";
 import { MdOutlineHealthAndSafety } from "react-icons/md";
 import { PiWarningOctagonFill } from "react-icons/pi";
 import { GiCycle } from "react-icons/gi";
+import { ChipStateType } from "../types/ChipState";
+
+type CaptureEntry = {
+  timestamp: number;
+  values: number[];
+  state: ChipStateType;
+};
 
 declare global {
   interface Window {
     setOverlayMode?: (enabled: boolean) => void;
     sendMouseOverButtons?: (isOverButtons: boolean) => void;
-    setSelectionMode?: (enabled: boolean) => void; // Nueva función
+    setSelectionMode?: (enabled: boolean) => void;
   }
 }
 
@@ -23,10 +30,11 @@ export default function ScreenOverlay() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const [cycles, setCycles] = useState(0);
-  const [goodChips, setGoodChps] = useState(0)
+  const [goodChips, setGoodChps] = useState(0);
   const [warningChips, setWarningChips] = useState(0);
-  const [damageChips, setDamageChips] = useState(0)
-  const [reports, setReports] = useState(0)
+  const [damageChips, setDamageChips] = useState(0);
+  const [reports, setReports] = useState(0);
+  const [history, setHistory] = useState<CaptureEntry[]>([]);
 
   const [scan, setScan] = useState(false);
   const [selectionRect, setSelectionRect] = useState({
@@ -37,45 +45,54 @@ export default function ScreenOverlay() {
   });
 
   const handleStart = async () => {
-    try {
-      const area = isSelecting
-        ? {
-            x: Math.round(selectionRect.x),
-            y: Math.round(selectionRect.y),
-            width: Math.round(selectionRect.width),
-            height: Math.round(selectionRect.height),
-          }
-        : undefined;
+  try {
+    const area = isSelecting
+      ? {
+          x: Math.round(selectionRect.x),
+          y: Math.round(selectionRect.y),
+          width: Math.round(selectionRect.width),
+          height: Math.round(selectionRect.height),
+        }
+      : undefined;
 
-      const sources = await window.electronAPI.getCaptureSources();
-      if (sources.length === 0) {
-        flashy.error("No se encontraron fuentes de captura");
-        return;
-      }
-
-      const sourceId = sources[0].id;
-
-      const result = await window.electronAPI.captureScreen(sourceId, area);
-
-      if (result.ok) {
-        const currentValues = await extractNumbersFromImage(result.filepath);
-        console.log(`Captura exitosa: ${result.filepath}`);
-        console.log(currentValues);
-        flashy.success("Analizando chips");
-        const currentState = determineChips(currentValues);
-        console.log(currentState);
-        if (currentState) return flashy.success(currentState);
-      } else {
-        console.error("Error en captura:", result.error);
-        flashy.error("Error al capturar", { position: "top-left" });
-      }
-    } catch (error) {
-      console.error("Error al capturar pantalla:", error);
-      flashy.error("Error inesperado", { position: "top-left" });
+    const sources = await window.electronAPI.getCaptureSources();
+    if (sources.length === 0) {
+      flashy.error("No se encontraron fuentes de captura");
+      return;
     }
-  };
+
+    const sourceId = sources[0].id;
+    const result = await window.electronAPI.captureScreen(sourceId, area);
+
+    if (result.ok) {
+      const currentValues = await extractNumbersFromImage(result.filepath);
+      console.log(`Captura exitosa: ${result.filepath}`);
+      const stateStatus = determineStatus(currentValues);
+      stateStatus && flashy.success(stateStatus);
+
+      setHistory((prev) => [
+        ...prev,
+        {
+          timestamp: Date.now(),
+          values: currentValues,
+          state: stateStatus,
+        },
+      ]);
+    } else {
+      console.error("Error en captura:", result.error);
+      flashy.error("Error al capturar", { position: "top-left" });
+    }
+  } catch (error) {
+    console.error("Error al capturar pantalla:", error);
+    flashy.error("Error inesperado", { position: "top-left" });
+  }
+};
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+  console.log("History updated:", history);
+}, [history]);
 
   useEffect(() => {
     if (window.setSelectionMode) {
@@ -106,20 +123,22 @@ export default function ScreenOverlay() {
   };
 
   useEffect(() => {
-    if (!scan) return;
-    if (!isSelecting) {
-      flashy.warning("Primero debe seleccionar un area a escanear", {
-        position: "top-left",
-      });
-      setScan(false);
-    }
+  if (!scan) return;
 
-    const interval = setInterval(() => {
-      handleStart();
-    }, 10000);
+  if (!isSelecting) {
+    flashy.warning("Primero debe seleccionar un área a escanear", {
+      position: "top-left",
+    });
+    setScan(false);
+    return;
+  }
 
-    return () => clearInterval(interval);
-  }, [scan]);
+  const interval = setInterval(() => {
+    handleStart();
+  }, 10000);
+
+  return () => clearInterval(interval);
+}, [scan, isSelecting, selectionRect]);
 
   useEffect(() => {
     if (window.setOverlayMode) {
@@ -237,11 +256,11 @@ export default function ScreenOverlay() {
         </div>
       )}
 
-      <div 
+      <div
         className="absolute top-5 left-5 flex gap-2 pointer-events-auto"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         <div className="px-4 py-2 w-[80px] bg-green-600/80 hover:bg-green-700/90 text-white rounded-lg shadow-lg transition-all flex items-center gap-2 justify-center cursor-pointer backdrop-blur-sm">
           <MdOutlineHealthAndSafety /> {goodChips}
         </div>
@@ -254,10 +273,10 @@ export default function ScreenOverlay() {
         <div className="px-4 justify-center gap-2 w-[80px] flex items-center py-2 bg-purple-500/90 hover:bg-purple-600/90 text-white rounded-lg shadow-lg transition-all cursor-pointer backdrop-blur-sm">
           <PiWarningOctagonFill /> {reports}
         </div>
-         <div 
+        <div
           className="px-4 justify-center gap-2 w-[80px] flex items-center py-2 bg-purple-500/90 hover:bg-purple-600/90 text-white rounded-lg shadow-lg transition-all cursor-pointer backdrop-blur-sm"
           onClick={() => setCycles(cycles + 1)}
-          >
+        >
           <GiCycle /> {cycles}
         </div>
       </div>
